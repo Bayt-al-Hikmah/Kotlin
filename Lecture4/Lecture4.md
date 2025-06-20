@@ -1,8 +1,6 @@
-### **Objectives**
-
+## Objectives
 - Build a strong foundation in Object-Oriented Programming (OOP) with Kotlin.
 - Learn to write robust code by handling errors and exceptions gracefully.
-
 ## Object-Oriented Programming (OOP)
 ### Introduction: 
 Imagine we're building a complex application, like a game or a social media app. You could write all your code in one massive file, but it would quickly become chaotic and impossible to manage.  
@@ -337,6 +335,116 @@ fun handleResult(result: Result) {
         is Result.Error -> println("Error: ${result.message}")
         Result.Loading -> println("Loading...")
     }
+}
+```
+### Operator Overloading
+Operator overloading is the act of making basic operators like `+`, `-`, `*`, `==`, and others work with our own classes. By default, Kotlin doesn't know how to use these operators with custom objects. But by defining special functions in our class, we can tell Kotlin what these operators should do.  
+Let’s say we’re working with a `FoodPortion` class. We want to be able to **add** two portions together or **compare** if they are equal. Instead of creating separate methods like `add` or `isEqual`, we can overload the `+` and `==` operators to keep our code clean and natural.  
+In Kotlin, we use the `operator` keyword to tell the compiler that we are overloading a standard operator.
+```
+class FoodPortion(val grams: Int) {
+
+    // Overload + operator
+    operator fun plus(other: FoodPortion): FoodPortion {
+        return FoodPortion(this.grams + other.grams)
+    }
+
+    // Override equals to compare based on grams
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FoodPortion) return false
+        return this.grams == other.grams
+    }
+
+    // Always override hashCode when overriding equals
+    override fun hashCode(): Int {
+        return grams
+    }
+
+    // Override toString for readable output
+    override fun toString(): String {
+        return "${grams}g"
+    }
+}
+
+fun main() {
+    val portion1 = FoodPortion(50)
+    val portion2 = FoodPortion(30)
+    val total = portion1 + portion2 // This works due to the 'plus' operator
+
+    println("Total: $total") // Output: Total: 80g
+    println(portion1 == portion2) // Output: false
+
+    val portion3 = FoodPortion(50)
+    println(portion1 == portion3) // Output: true (because we overrode equals)
+}
+```
+The operator ``===`` checks whether two references point to the exact same object in memory this is called referential equality.
+The `this` variable represents the first operand (the object on the left side of the `+`). It refers to the current instance of the class on which the function is being called. We use `this` when we want to access the properties or methods of the current object, especially when both operands are involved in an operation.
+The `other` variable represents the second operand (the object on the right side of the `+`). We include it as a parameter for binary operators that require two operands.  
+Here’s a small list of some common operators and the functions we need to define to overload them in Kotlin:
+
+| Operator | Function to Define               | Description           |
+| :------- | :------------------------------- | :-------------------- |
+| `+`      | `fun plus(other)`                | Addition              |
+| `-`      | `fun minus(other)`               | Subtraction           |
+| `*`      | `fun times(other)`               | Multiplication        |
+| `/`      | `fun div(other)`                 | Division              |
+| `%`      | `fun rem(other)` or `mod(other)` | Remainder (Modulo)    |
+| `==`     | `fun equals(other)`              | Equality comparison   |
+| `!=`     | Not directly overloaded*         | Inequality            |
+| `<`      | `fun compareTo(other)`           | Less than             |
+| `<=`     | `fun compareTo(other)`           | Less than or equal    |
+| `>`      | `fun compareTo(other)`           | Greater than          |
+| `>=`     | `fun compareTo(other)`           | Greater than or equal |
+In Kotlin, if we correctly override the `equals` function , the `!=` operator will automatically work as its logical opposite. The comparison operators (`<`, `<=`, `>`, `>=`) are all handled by implementing the `compareTo` function, which should return a negative integer, zero, or a positive integer if `this` object is less than, equal to, or greater than `other`, respectively.
+#### Comparing Objects with `compareTo`
+We've seen how `==` checks for equality. But what if we want to know if one object is greater than or less than another? For numbers, this is easy (`5 > 3`). For our custom classes, Kotlin doesn't inherently know what makes one `FoodPortion` "greater than" another.  
+This is where the `compareTo` function comes in. By implementing it, we define a "natural order" for our objects. Once we do this, Kotlin allows us to use all the familiar comparison operators: `>`, `<`, `>=`, and `<=`.  
+To do this, our class needs to implement the `Comparable` interface. Think of this as a "contract" where our class promises to provide a `compareTo` function.  
+##### How `compareTo` Works
+The `compareTo` function's job is to compare the current object (`this`) with another object (`other`) and return an integer that signals the result:
+- **A negative number:** if `this` object is less than the `other` object.
+- **Zero:** if `this` object is equal to the `other` object.
+- **A positive number:** if `this` object is greater than the `other` object.
+
+Let's teach our `FoodPortion` class how to compare itself to another `FoodPortion`. The most logical way to compare them is by their weight in grams.
+```
+class FoodPortion(val grams: Int) : Comparable<FoodPortion> {
+    operator fun plus(other: FoodPortion): FoodPortion {
+        return FoodPortion(this.grams + other.grams)
+    }
+
+    override operator fun compareTo(other: FoodPortion): Int {
+        return if (this.grams < other.grams) {
+            -1
+        } else if (this.grams > other.grams) {
+            1
+        } else {
+            0
+        }
+    }
+
+    override fun toString(): String {
+        return "${grams}g"
+    }
+}
+
+
+fun main() {
+    val smallPortion = FoodPortion(100)
+    val largePortion = FoodPortion(250)
+    val mediumPortion = FoodPortion(100) // Same size as smallPortion
+
+    println("Is largePortion > smallPortion?")
+    println(largePortion > smallPortion) // Output: true
+
+    println("\nIs smallPortion < largePortion?")
+    println(smallPortion < largePortion) // Output: true
+
+    println("\nIs smallPortion >= mediumPortion?")
+    println(smallPortion >= mediumPortion) // Output: true
+
 }
 ```
 ## Error Handling
