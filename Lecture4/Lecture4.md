@@ -1,6 +1,6 @@
 ## Objectives
-- Build a strong foundation in Object-Oriented Programming (OOP) with Kotlin.
-- Learn to write robust code by handling errors and exceptions gracefully.
+- Object-Oriented Programming (OOP) with Kotlin.
+- Handling errors and exceptions.
 ## Object-Oriented Programming (OOP)
 ### Introduction: 
 Imagine we're building a complex application, like a game or a social media app. You could write all your code in one massive file, but it would quickly become chaotic and impossible to manage.  
