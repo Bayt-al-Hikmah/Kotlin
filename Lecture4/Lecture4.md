@@ -397,6 +397,8 @@ Here’s a small list of some common operators and the functions we need to defi
 | `<=`     | `fun compareTo(other)`           | Less than or equal    |
 | `>`      | `fun compareTo(other)`           | Greater than          |
 | `>=`     | `fun compareTo(other)`           | Greater than or equal |
+
+
 In Kotlin, if we correctly override the `equals` function , the `!=` operator will automatically work as its logical opposite. The comparison operators (`<`, `<=`, `>`, `>=`) are all handled by implementing the `compareTo` function, which should return a negative integer, zero, or a positive integer if `this` object is less than, equal to, or greater than `other`, respectively.
 #### Comparing Objects with `compareTo`
 We've seen how `==` checks for equality. But what if we want to know if one object is greater than or less than another? For numbers, this is easy (`5 > 3`). For our custom classes, Kotlin doesn't inherently know what makes one `FoodPortion` "greater than" another.  
