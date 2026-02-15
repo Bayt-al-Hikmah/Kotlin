@@ -600,7 +600,7 @@ if (score >= 90) {
 
 ```
 ### The `when` Statement
-`when` is Kotlin’s powerful and flexible alternative to the `switch` statement. It allows us to execute different actions based on the value of a variable.  
+`when` allows us to execute different actions based on the value of a variable.  
 To use it, place the variable in parentheses after the `when` keyword, then define the possible values inside curly braces `{}`, each followed by `->` and the corresponding expression to execute.
 ```
 val day = "Monday"
@@ -623,6 +623,18 @@ when {
     else -> println("It's cold.")
 }
 // Output: It's warm.
+```
+We can also assign the result of when to a variable because it returns a value:
+```kotlin
+val x = 2
+val result = when (x) {
+    1 -> "One"
+    2 -> "Two"
+    3 -> "Three"
+    else -> "Unknown"
+}
+
+println(result) 
 ```
 ## Loops
 Loops help us repeat code multiple times without rewriting it.
@@ -686,13 +698,24 @@ for ((key, value) in person) {
 // name: Alice
 // age: 30
 ```
-#### Ranges in Kotlin
-
+#### Ranges in Kotlin   
+A range in Kotlin is a way to represent a sequence of values between a start and an end. It defines a set of ordered values and is often used for iteration, validation, and conditional checks. There is serval ways to create them 
 - `1..5` creates a **closed range** including both start and end values: `1, 2, 3, 4, 5`.
 - `1 until 5` creates a **half-open range** that includes the start but excludes the end value: `1, 2, 3, 4`.
 - `5 downTo 1` creates a range that counts down: `5, 4, 3, 2, 1`.
 - `1..10 step 2` creates a range with a step: `1, 3, 5, 7, 9`.
+```kotlin
+fun main() {
+    // Closed range
+    for (i in 1..5) {
+        print("$i ")  // Output: 1 2 3 4 5
+    }
+    println()
+}
+```
 ### `break` and `continue` Keywords
+Java provides break and continue to give more control over loops:
+
 - `break`: Stops the loop entirely.
 - `continue`: Skips the rest of the current iteration and jumps to the next one.
 
