@@ -349,39 +349,312 @@ We can organize a large project into smaller, independent modules (also called s
         MyModule.sayHello("Ali")
     }
     ```
-## Working with External Dependencies (Packages)
+## Working with Dependencies 
 ### Introduction
+So far, all our programs have been represented by single files. However, Kotlin allows us to divide a project into multiple files, defining specific functionality in each one. We can then use these functionalities by importing the functions into our main file. When compiling, Kotlin generates bytecode files for the main file as well as all other files in the project.
+To organize that Kotlin use packages
+### Packages
+A **package** in Kotlin is a way to organize related classes, functions, and interfaces. It helps prevent naming conflicts and can control visibility across files. To define a package, we use the `package` keyword at the very top of a Kotlin file.  
+Let's create a specialized package for mathematical operations. We'll create a folder named `tools` and inside it, a file named `MathHelper.kt`.
+```kotlin
+package tools
 
-Gradle makes it easy to use third-party libraries (packages) from public repositories like Maven Central, Google's Maven Repository, or JitPack. These packages help you avoid reinventing the wheel by leveraging the work of the wider developer community for tasks like networking, JSON serialization, and more.
-### Installing and Using a Third-Party Library
-To use an external library, you simply add it to the `dependencies` block in your `build.gradle.kts` file. Gradle will automatically download it and make it available to your project.  
-Let's add **Ktor**, a popular networking library for Kotlin.
-1. **Add the dependency** in `build.gradle.kts`:
-    ```
-    // build.gradle.kts
-    dependencies {
-        // Ktor client for making HTTP requests
-        val ktorVersion = "2.3.10"
-        implementation("io.ktor:ktor-client-cio:$ktorVersion")
+fun square(number: Int): Int {
+   return number * number
+}
+```
+#### Using the package
+If we want to use this class in another file (outside the `tools` folder), we must import it using the `import` keyword. Kotlin uses the full package name + class name to locate it.
+```kotlin
+import tools.square
+
+fun main() {
+    // Using a static-like method from the package
+    val result = square(5)
+    println("Square is: $result")
+}
+```
+We can also import all classes/functions from a package using a wildcard:
+```
+import tools.*
+```
+#### Sub-packages in Kotlin
+Packages can be nested using subfolders to create a hierarchical structure. This is useful in larger projects. For example, we might have this folder structure:
+```
+src/
+ └─ com/
+     └─ example/
+         └─ tools/
+             └─ MathHelper.kt
+```
+In this case, the package name reflects the folder structure:
+```
+// File: src/com/example/tools/MathHelper.kt
+package com.example.tools
+
+class MathHelper {
+
+    companion object {
+        fun square(number: Int): Int {
+            return number * number
+        }
     }
-    ```
-2. **Sync your Gradle project.** Your IDE will prompt you to do this, or you can run `gradle build` from the command line. Gradle will download Ktor.
-3. **Use the library** in your code by importing its modules.
-    ```
-    import io.ktor.client.*
-    import io.ktor.client.engine.cio.*
-    import io.ktor.client.request.*
-    import io.ktor.client.statement.*
-    import kotlinx.coroutines.runBlocking
-    
-    fun main() = runBlocking {
-        val client = HttpClient(CIO)
-        val response: HttpResponse = client.get("https://httpbin.org/get")
-        println(response.bodyAsText())
-        client.close()
+
+    fun printMessage() {
+        println("Math helper in nested package is running.")
     }
-    ```
-    This example makes a network request and prints the response. `runBlocking` is used here to run the asynchronous code.
+}
+```
+To use this class in another file outside ``com.example.tools``, we import it with the full package path:
+```
+import com.example.tools.MathHelper
+
+fun main() {
+    val result = MathHelper.square(7)
+    println("Square is: $result")
+
+    val helper = MathHelper()
+    helper.printMessage()
+}
+```
+The problem with this approach is that if we want to share functionality with other developers, they would need all the Kotlin files in the project. To simplify distribution, we can package all classes into a single JAR file, which is the standard JVM way to bundle multiple classes into one archived file. This allows other developers to use our functionality without having to manage individual Kotlin files.
+### The Standard Unit in Kotlin: JAR Files
+In Kotlin (running on the JVM), applications are packaged into **JAR files** (Java ARchives). A JAR is essentially a compressed ZIP file that contains everything needed to run the application. A typical JAR includes:
+- **Compiled Code**  All `.class` files generated from your Kotlin code, organized by package.
+- **Resources** Images, configuration files, scripts, and other assets.
+- **Metadata** A manifest file that can specify the entry point of the application (the class containing the `main` function).
+#### Creating a JAR File in Kotlin
+To create a JAR file, we first compile Kotlin code into JVM bytecode and then package it into a single archive.
+
+**Compile Kotlin source code:**
+```
+kotlinc src -d out
+```
+- `src` is the folder containing your `.kt` files.
+- `-d out` specifies the destination directory for the compiled `.class` files.
+**Package into a JAR:**
+```
+jar cf app.jar -C out .
+```
+- `c` create a new archive
+- `f` the name of the JAR file (`app.jar`)
+- `-C out .` change to the `out` directory and include all compiled files
+
+#### Creating an Executable JAR
+If our Kotlin application has a `main` function, you can make the JAR executable by adding a manifest file:
+**manifest.txt**
+```
+Main-Class: com.example.MainKt
+```
+**Create executable JAR:**
+```
+jar cfm app.jar manifest.txt -C out .
+```
+- `m` includes the manifest file.
+- After this, you can run your application directly:
+
+```
+java -jar app.jar
+```
+## Including External JARs
+Kotlin projects often depend on other JAR files. You can include them during compilation using the `-cp` (classpath) flag:
+```
+kotlinc -cp "lib/*" -d out src/*.kt
+```
+- `"lib/*"` includes all JAR files in the `lib` directory.
+
+At runtime, we can also add external libraries to the classpath:
+```
+java -cp "lib/*:out" com.example.MainKt
+```
+- `lib/*` loads all external libraries.
+- `out` contains your compiled Kotlin classes.
+### The Modern Problem: Dependency Hell
+
+While JAR files solve the packaging problem, they create **dependency management issues**. If your project uses libraries that themselves have dependencies, manually downloading and linking all JARs becomes tedious and error-prone this is known as **Dependency Hell**.
+**Solution:** Use a build tool like **Gradle** or **Maven**. These tools:
+- Automatically download required libraries from central repositories.
+- Resolve **transitive dependencies** (dependencies of your dependencies).
+- Simplify compilation, packaging, and running of Kotlin applications.
+
+
+In modern Kotlin development, **Gradle** is the standard tool for building projects, managing JARs, and handling dependencies efficiently.
+
+### Gradle
+Gradle is a modern build automation tool widely used in the JVM ecosystem. While historically associated with Groovy, Gradle now strongly supports the Kotlin DSL (`build.gradle.kts`). This offers excellent IDE support (autocompletion, refactoring, and type safety) compared to the dynamic Groovy DSL or Maven's XML.   
+It is the standard build tool for Android and server-side Kotlin development.
+#### Installing Gradle
+ Gradle does not come pre-installed with the JDK. To install it, first download the **Binary-only zip** from the official [Gradle website](https://gradle.org/install/). Then extract it to a folder:
+- **Windows:** `C:\Program Files\Gradle`
+- **Linux/Mac:** `/opt/gradle`
+
+Finally, add the `bin` folder to your system’s **PATH**:
+- **Linux/Mac:** Add `export PATH=/opt/gradle/bin:$PATH` to `.bashrc` or `.zshrc`.
+- **Windows:** Edit System Environment Variables → Path → Add `C:\Program Files\Gradle\gradle-x.x\bin`.
+
+Verify the installation by running:
+```
+gradle -v
+```
+#### Setting The Configuration
+Gradle uses a file named `build.gradle.kts` to define project configuration. This file must sit at the **root** of our project.  
+Here is a typical configuration for a Kotlin application:
+```
+plugins {
+    kotlin("jvm") version "1.9.22" // Applies the Kotlin JVM plugin
+    application                    // Applies the Application plugin
+}
+
+group = "com.example"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.google.code.gson:gson:2.10.1")
+    testImplementation(kotlin("test")) // Standard Kotlin testing library
+}
+
+application {
+    mainClass.set("com.example.MainKt") // Points to the compiled class
+}
+```
+Here is how the configuration works (note the parentheses and quotes, which are required in Kotlin):
+- **`plugins`**:
+    - `kotlin("jvm")`: Adds capabilities to compile Kotlin code.
+    - `application`: Helps run the app as an executable.
+- **`group` & `version`**: Identifies the project artifacts.
+- **`repositories`**: Tells Gradle where to look for dependencies (`mavenCentral()` is the standard).
+- **`dependencies`**:
+    - `implementation(...)`: Libraries required for production code.
+    - `testImplementation(...)`: Libraries needed only for testing.
+- **`application`**: Configures the entry point.
+    - _Note:_ If our `main` function is a top-level function in a file named `Main.kt`, the compiled class name is usually `MainKt`.
+#### The Standard Directory Layout
+Gradle projects follow this foldes structure:
+```
+my-app/
+├── build.gradle.kts      (Project configuration in Kotlin DSL)
+└── src/
+    ├── main/
+    │   ├── kotlin/       (Application source code)
+    │   └── resources/    (Non-code resources)
+    └── test/
+        ├── kotlin/       (Test source code)
+        └── resources/    (Test-specific resources)
+```
+- **`src/main/kotlin`** – Gradle compiles Kotlin code here.
+- **`src/test/kotlin`** – Gradle compiles test scripts here.
+#### Building The Project
+Gradle use tasks to compile our project, we can excute those tasks as following:
+
+**Compile**
+```
+gradle compileKotlin
+```
+This task compiles code in `src/main/kotlin` and stores `.class` files in `build/classes/kotlin/main`.
+
+**Running Tests**
+```
+gradle test
+```
+This compiles the code and tests, then executes them using the configured test framework (e.g., JUnit or Kotlin Test).
+
+**Packaging**
+```
+gradle jar
+```
+Packages the compiled code into a JAR file located in `build/libs`.
+
+**Cleaning the Project**
+```
+gradle clean
+```
+Deletes the `build` folder. Combine it with packaging for a fresh build:
+```
+gradle clean jar
+```
+#### Running Executable JAR
+We can run our Kotlin project directly without manually creating a JAR using:
+```
+gradle run
+```
+This requires the `application` plugin and the `mainClass` property set in `build.gradle.kts`.
+
+If we want to generate a runnable JAR (where we can run `java -jar app.jar`), we must tell the `jar` task about our main class in the manifest. In Kotlin DSL, it looks like this:
+```
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "com.example.MainKt"
+    }
+}
+```
+After building, run it with:
+```
+kotlin build/libs/my-app-1.0.0.jar
+```
+### The Gradle Wrapper
+The Gradle Wrapper allows a project to run without a global Gradle installation, ensuring the exact correct version of Gradle is used.
+#### Setting The Gradle Wrapper
+Generate the wrapper files by running:
+
+```
+gradle wrapper
+```
+This creates:
+```
+gradlew         (Unix script)
+gradlew.bat     (Windows script)
+gradle/wrapper/ (Configuration files)
+```
+To initialize a new Kotlin project from scratch (which creates the wrapper automatically):
+```
+gradle init
+```
+Select Kotlin as the implementation language and Kotlin as the build script DSL when prompted.
+#### Working With The Gradle Wrapper
+Always use the wrapper scripts instead of the global command:
+
+**Linux/Mac:**
+```
+./gradlew build
+./gradlew run
+```
+
+**Windows:**
+```
+.\gradlew build
+.\gradlew run
+```
+#### Installing and Using a Third-Party Library
+To use an external library in Kotlin, we add it to your build.gradle.kts dependencies and then import it in our code. For example, to use Ktor for HTTP requests:
+
+We add the dependency in build.gradle.kts:
+```
+dependencies {
+    val ktorVersion = "2.3.10"
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+}
+```
+
+Once the dependency is added, we can use the library in our Kotlin code. For example, using Ktor to make an HTTP request:
+```
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import kotlinx.coroutines.runBlocking
+
+fun main() = runBlocking {
+    val client = HttpClient(CIO)
+    val response: HttpResponse = client.get("https://httpbin.org/get")
+    println(response.bodyAsText())
+    client.close()
+}
+```
+After building the project, Gradle will automatically download the library and include it in our project’s JAR file, making it ready to use.
 ## Tasks
 ### Task 1
 Create a function `isPrime(number: Int): Boolean` that takes an integer and returns `true` if it is a prime number, and `false` otherwise.
