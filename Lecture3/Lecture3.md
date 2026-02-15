@@ -1,7 +1,6 @@
 ## Objectives
 - Working with Functions
-- Working with Libraries and Gradle Modules
-- Working with External Dependencies (Packages)
+- Working with Dependencies 
 ## Functions
 ### Introduction
 A function is a reusable block of code designed to perform a specific task. Functions are fundamental to writing efficient and well-structured programs. By following the **DRY** (Don't Repeat Yourself) principle, functions help eliminate code duplication. They also make it easier to break down complex problems into smaller, manageable parts, resulting in code that is more organized, easier to understand, and simpler to maintain.
@@ -245,110 +244,7 @@ Functional programming is a paradigm that treats computation as the evaluation o
 3. **First-Class and Higher-Order Functions**: Functions are treated as values, can be passed as arguments, and can be returned from other functions.
 4. **Referential Transparency**: An expression can be replaced with its corresponding value without changing the program's behavior.
 5. **Immutability**: Preferring immutable data structures (`val`, `listOf`, `mapOf`) over mutable ones (`var`, `mutableListOf`) helps prevent side effects and makes code more predictable.
-## Working with Libraries, Modules, and Dependencies in Kotlin
-### Introduction
-In the Kotlin and Java ecosystem, reusable code is packaged into libraries (typically as `.jar` or `.aar` files). These libraries are managed by a build automation tool, with Gradle being the standard for modern Kotlin projects. Modules and libraries help organize code into reusable components and create namespaces to prevent name collisions.
-### Kotlin and Java Standard Libraries
-Kotlin projects have access to two powerful sets of standard libraries out of the box:
-- **Kotlin Standard Library (`kotlin-stdlib`)**: Provides Kotlin-specific functions and types, such as extensions for collections, coroutines support, and more. It is automatically included in every Kotlin project.
-- **Java Development Kit (JDK)**: Since Kotlin is fully interoperable with Java, you can use all the rich libraries from the JDK for tasks like file I/O, networking, date/time manipulation, and math.
 
-To use functionalities from these libraries, you must explicitly `import` them at the top of your file.
-```
-import kotlin.math.sqrt
-import java.util.Date // Importing a class from the Java standard library
-
-fun main() {
-    println(sqrt(25.0)) // From Kotlin's math library
-
-    val currentDate = Date() // From Java's utility library
-    println(currentDate)
-}
-```
-### Kotlin Projects with Gradle
-A Kotlin project is typically managed by Gradle. Gradle handles everything from compiling your code and running tests to managing dependencies.
-#### Creating a Kotlin Project
-You can create a new Kotlin project using an IDE like IntelliJ IDEA or Android Studio, which will set up the Gradle structure for you. Alternatively, you can initialize a project from the command line:
-```
-# This command initializes a new Kotlin application project with Gradle
-gradle init --type kotlin-application
-```
-#### Structure of a Gradle Project
-A typical Gradle project has the following structure:
-```
-MyProject/
-├── gradle/
-├── src/
-│   ├── main/
-│   │   └── kotlin/
-│   │       └── com/example/Main.kt  # Your source code
-│   └── test/
-│       └── kotlin/
-│           └── com/example/AppTest.kt # Your test code
-├── build.gradle.kts      # The main build script
-└── settings.gradle.kts   # Project settings, defines modules
-```
-#### The `build.gradle.kts` file
-This is the manifest file for your project, written in Kotlin Script (`.kts`). It tells Gradle how to build your project, what plugins to use, and what dependencies it needs.
-```
-// build.gradle.kts
-
-// Defines the plugins needed for this project (e.g., for Kotlin on the JVM)
-plugins {
-    kotlin("jvm") version "1.9.23"
-    application
-}
-
-// Specifies the main repository for finding dependencies
-repositories {
-    mavenCentral()
-}
-
-// Lists the external libraries your project depends on
-dependencies {
-    // Coroutines library from JetBrains
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    testImplementation(kotlin("test")) // A library for testing
-}
-
-application {
-    mainClass.set("com.example.MainKt") // Specifies the main entry point
-}
-```
-### Creating Local Modules (Gradle Sub-modules)
-We can organize a large project into smaller, independent modules (also called sub-projects). This improves organization and build times.
-1. **Define a new module** in your `settings.gradle.kts` file.
-    ```
-    // settings.gradle.kts
-    rootProject.name = "my-app"
-    include("my-custom-module") // Declare the module
-    ```
-2. **Create a folder** for the module (e.g., `my-custom-module/`) with its own `src` directory and `build.gradle.kts` file.
-3. **Make the main project depend on the module.** Add it as a dependency in the main project's `build.gradle.kts`.
-    ```
-    // In my-app/build.gradle.kts
-    dependencies {
-        implementation(project(":my-custom-module")) // Depend on the local module
-    }
-    ```
-4. Now you can `import` and use public code from `my-custom-module` in your main application.
-    ```
-    // In my-custom-module/src/main/kotlin/MyModule.kt
-    package com.example.custom
-    
-    object MyModule {
-        fun sayHello(name: String) {
-            println("Hello from the module, $name!")
-        }
-    }
-    
-    // In my-app/src/main/kotlin/Main.kt
-    import com.example.custom.MyModule
-    
-    fun main() {
-        MyModule.sayHello("Ali")
-    }
-    ```
 ## Working with Dependencies 
 ### Introduction
 So far, all our programs have been represented by single files. However, Kotlin allows us to divide a project into multiple files, defining specific functionality in each one. We can then use these functionalities by importing the functions into our main file. When compiling, Kotlin generates bytecode files for the main file as well as all other files in the project.
